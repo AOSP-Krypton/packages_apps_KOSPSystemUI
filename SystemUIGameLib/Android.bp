@@ -5,7 +5,7 @@ filegroup {
     ],
     path: "src/main/java",
     visibility: [
-        "//packages/apps/FlamingoSystemUI",
+        "//packages/apps/KOSPSystemUI",
     ],
 }
 
@@ -16,6 +16,6 @@ filegroup {
     ],
     path: "src/main/aidl",
     visibility: [
-        "//packages/apps/FlamingoSystemUI",
+        "//packages/apps/KOSPSystemUI",
     ],
 }

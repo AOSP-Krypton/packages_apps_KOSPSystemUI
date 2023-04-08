@@ -1,1 +1,1 @@
--keep class com.flamingo.systemui.** { *; }
+-keep class com.kosp.systemui.** { *; }

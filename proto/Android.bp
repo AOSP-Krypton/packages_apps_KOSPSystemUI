@@ -8,6 +8,6 @@ java_library {
     ],
     sdk_version: "current",
     visibility: [
-        "//packages/apps/FlamingoSystemUI:__subpackages__",
+        "//packages/apps/KOSPSystemUI:__subpackages__",
     ],
 }
