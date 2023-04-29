@@ -57,6 +57,7 @@ public final class KOSPEnhancedEstimatesImpl implements EnhancedEstimates {
         Context context,
         GlobalSettings globalSettings
     ) {
+        super();
         mContext = context;
         mGlobalSettings = globalSettings;
         mParser = new KeyValueListParser(',');

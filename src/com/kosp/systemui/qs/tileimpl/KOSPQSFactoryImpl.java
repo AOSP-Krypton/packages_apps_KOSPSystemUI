@@ -34,6 +34,7 @@ import com.android.systemui.qs.tiles.ColorInversionTile;
 import com.android.systemui.qs.tiles.DataSaverTile;
 import com.android.systemui.qs.tiles.DeviceControlsTile;
 import com.android.systemui.qs.tiles.DndTile;
+import com.android.systemui.qs.tiles.DreamTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
 import com.android.systemui.qs.tiles.HotspotTile;
 import com.android.systemui.qs.tiles.InternetTile;
@@ -51,7 +52,7 @@ import com.android.systemui.qs.tiles.UiModeNightTile;
 import com.android.systemui.qs.tiles.WifiTile;
 import com.android.systemui.qs.tiles.WorkModeTile;
 import com.android.systemui.util.leak.GarbageMonitor;
-import com.kosp.systemui.qs.tiles.AODTile;
+//import com.kosp.systemui.qs.tiles.AODTile;
 import com.kosp.systemui.qs.tiles.AmbientDisplayTile;
 import com.kosp.systemui.qs.tiles.AntiFlickerTile;
 import com.kosp.systemui.qs.tiles.CaffeineTile;
@@ -83,7 +84,7 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
     private final Provider<SoundTile> mSoundTileProvider;
     private final Provider<LiveDisplayTile> mLiveDisplayTileProvider;
     private final Provider<AntiFlickerTile> mAntiFlickerTileProvider;
-    private final Provider<AODTile> mAodTileProvider;
+    //private final Provider<AODTile> mAodTileProvider;
     private final Provider<DataSwitchTile> mDataSwitchTileProvider;
     private final Provider<FPSInfoTile> mFpsInfoTileProvider;
     private final Provider<HeadsUpTile> mHeadsUpTileProvider;
@@ -122,6 +123,7 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
         Provider<QRCodeScannerTile> qrCodeScannerTileProvider,
         Provider<OneHandedModeTile> oneHandedModeTileProvider,
         Provider<ColorCorrectionTile> colorCorrectionTileProvider,
+        Provider<DreamTile> dreamTileProvider,
         Provider<ReadingModeTile> readingModeTileProvider,
         Provider<RefreshRateTile> refreshRateTileProvider,
         Provider<CaffeineTile> caffeineTileProvider,
@@ -131,7 +133,7 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
         Provider<SoundTile> soundTileProvider,
         Provider<LiveDisplayTile> liveDisplayTileProvider,
         Provider<AntiFlickerTile> antiFlickerTileProvider,
-        Provider<AODTile> aodTileProvider,
+        //Provider<AODTile> aodTileProvider,
         Provider<DataSwitchTile> dataSwitchTileProvider,
         Provider<FPSInfoTile> fpsInfoTileProvider,
         Provider<HeadsUpTile> headsUpTileProvider,
@@ -148,7 +150,7 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
             screenRecordTileProvider, reduceBrightColorsTileProvider, cameraToggleTileProvider,
             microphoneToggleTileProvider, deviceControlsTileProvider, alarmTileProvider,
             quickAccessWalletTileProvider, qrCodeScannerTileProvider, oneHandedModeTileProvider,
-            colorCorrectionTileProvider
+            colorCorrectionTileProvider, dreamTileProvider
         );
 
         mReadingModeTileProvider = readingModeTileProvider;
@@ -160,7 +162,7 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
         mSoundTileProvider = soundTileProvider;
         mLiveDisplayTileProvider = liveDisplayTileProvider;
         mAntiFlickerTileProvider = antiFlickerTileProvider;
-        mAodTileProvider = aodTileProvider;
+        //mAodTileProvider = aodTileProvider;
         mDataSwitchTileProvider = dataSwitchTileProvider;
         mFpsInfoTileProvider = fpsInfoTileProvider;
         mHeadsUpTileProvider = headsUpTileProvider;
@@ -189,8 +191,8 @@ public class KOSPQSFactoryImpl extends QSFactoryImpl {
                 return mLiveDisplayTileProvider.get();
             case "anti_flicker":
                 return mAntiFlickerTileProvider.get();
-            case "aod":
-                return mAodTileProvider.get();
+            // case "aod":
+                // return mAodTileProvider.get();
             case "dataswitch":
                 return mDataSwitchTileProvider.get();
             case "fpsinfo":

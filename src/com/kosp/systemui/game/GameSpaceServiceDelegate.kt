@@ -51,7 +51,6 @@ import com.android.internal.statusbar.IStatusBarService
 import com.android.keyguard.KeyguardUpdateMonitor
 import com.android.keyguard.KeyguardUpdateMonitorCallback
 import com.android.systemui.CoreStartable
-import com.android.systemui.Prefs
 import com.android.systemui.R
 import com.android.systemui.dagger.SysUISingleton
 import com.android.systemui.dagger.qualifiers.Background
@@ -59,15 +58,7 @@ import com.android.systemui.keyguard.ScreenLifecycle
 import com.android.systemui.screenrecord.RecordingController
 import com.android.systemui.screenrecord.RecordingController.RecordingStateChangeCallback
 import com.android.systemui.screenrecord.RecordingService
-import com.android.systemui.screenrecord.ScreenRecordingAudioSource
-import com.android.systemui.screenrecord.ScreenRecordDialog.MODES
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREFS
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_AUDIO
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_AUDIO_SOURCE
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_DOT
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_LONGER
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_LOW
-import com.android.systemui.screenrecord.ScreenRecordDialog.PREF_TAPS
+import com.android.systemui.screenrecord.State
 import com.android.systemui.settings.UserContextProvider
 import com.android.systemui.statusbar.events.PrivacyDotViewController
 import com.android.systemui.statusbar.notification.collection.NotificationEntry
@@ -104,8 +95,8 @@ class GameSpaceServiceDelegate @Inject constructor(
     private val recordingController: RecordingController,
     private val userContextProvider: UserContextProvider,
     private val privacyDotViewController: PrivacyDotViewController,
-    context: Context
-) : CoreStartable(context) {
+    private val context: Context
+) : CoreStartable {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -297,30 +288,19 @@ class GameSpaceServiceDelegate @Inject constructor(
         override fun startScreenRecording() {
             if (recordingController.isRecording || recordingController.isStarting) return
             coroutineScope.launch(Dispatchers.IO) {
+                val screenRecordState = State(userContextProvider)
                 val userContext = userContextProvider.userContext
-
-                val showTaps = Prefs.getInt(userContext, PREFS + PREF_TAPS, 0) == 1
-                val showStopDot = Prefs.getInt(userContext, PREFS + PREF_DOT, 0) == 1
-                val longerDuration = Prefs.getInt(userContext, PREFS + PREF_LONGER, 0) == 1
-                val hasAudioSource = Prefs.getInt(userContext, PREFS + PREF_AUDIO, 0) == 1
-                val audioSource = if (hasAudioSource) {
-                    val index = Prefs.getInt(userContext, PREFS + PREF_AUDIO_SOURCE, 0)
-                    MODES[index]
-                } else {
-                    ScreenRecordingAudioSource.NONE
-                }
-                val lowQuality = Prefs.getInt(userContext, PREFS + PREF_LOW, 0) == 1
-
                 val startIntent = PendingIntent.getForegroundService(userContext,
                     RecordingService.REQUEST_CODE,
                     RecordingService.getStartIntent(
                         userContext,
                         Activity.RESULT_OK,
-                        audioSource.ordinal,
-                        showTaps,
-                        showStopDot,
-                        lowQuality,
-                        longerDuration
+                        screenRecordState.audioSource,
+                        screenRecordState.showTaps,
+                        null /* captureTarget */,
+                        screenRecordState.showStopDot,
+                        screenRecordState.isLowQuality,
+                        screenRecordState.shouldUseLongerTimeout
                     ),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
@@ -400,10 +380,10 @@ class GameSpaceServiceDelegate @Inject constructor(
         }
     }
 
-    private val pm = mContext.packageManager
+    private val pm = context.packageManager
 
     private val broadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(mContext: Context?, intent: Intent?) {
+        override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == ACTION_STOP_GAME_MODE) {
                 if (screenLifecycleObserverRegistered) {
                     screenLifecycle.removeObserver(screenLifecycleObserver)
@@ -564,7 +544,7 @@ class GameSpaceServiceDelegate @Inject constructor(
         logD {
             "start"
         }
-        val serviceComponentString = mContext.getString(R.string.config_gameSpaceServiceComponent)
+        val serviceComponentString = context.getString(R.string.config_gameSpaceServiceComponent)
         if (serviceComponentString.isBlank()) {
             Log.i(TAG, "Not starting service since component is unavailable")
             return
@@ -680,15 +660,15 @@ class GameSpaceServiceDelegate @Inject constructor(
         logD {
             "Task windowing mode = ${focusedRootTask.windowingMode}"
         }
-        return when (focusedRootTask.windowingMode) {
-            WindowConfiguration.WINDOWING_MODE_MULTI_WINDOW,
-            WindowConfiguration.WINDOWING_MODE_SPLIT_SCREEN_PRIMARY,
-            WindowConfiguration.WINDOWING_MODE_SPLIT_SCREEN_SECONDARY,
-            WindowConfiguration.WINDOWING_MODE_FREEFORM -> {
-                // Game mode should not be enabled in any of these windowing modes
-                null
-            }
-            else -> focusedRootTask.topActivity?.packageName
+        val windowingMode = focusedRootTask.windowingMode
+        return if (
+            WindowConfiguration.isFloating(windowingMode) ||
+            WindowConfiguration.inMultiWindowMode(windowingMode)
+        ) {
+            // Game mode should not be enabled in any of these windowing modes
+            null
+        } else {
+            focusedRootTask.topActivity?.packageName
         }
     }
 
@@ -766,7 +746,7 @@ class GameSpaceServiceDelegate @Inject constructor(
             "Trying to bind"
         }
         val bound = try {
-            mContext.bindServiceAsUser(
+            context.bindServiceAsUser(
                 gameSpaceIntent,
                 serviceConnection,
                 Context.BIND_AUTO_CREATE,
@@ -780,7 +760,7 @@ class GameSpaceServiceDelegate @Inject constructor(
             logD {
                 "Enabling game mode"
             }
-            mContext.registerReceiverAsUser(
+            context.registerReceiverAsUser(
                 broadcastReceiver,
                 UserHandle.SYSTEM,
                 IntentFilter(ACTION_STOP_GAME_MODE),
@@ -853,7 +833,7 @@ class GameSpaceServiceDelegate @Inject constructor(
             "Disabling game mode"
         }
         // We don't want anymore stop broadcasts, yeet.
-        mContext.unregisterReceiver(broadcastReceiver)
+        context.unregisterReceiver(broadcastReceiver)
         unregisterCallStateChangeListener()
         // Remove this observer first so as to not notify changes
         // after service is unbound.
@@ -863,7 +843,7 @@ class GameSpaceServiceDelegate @Inject constructor(
                 ringerModeObserverRegistered = false
             }
         }
-        mContext.unbindService(serviceConnection)
+        context.unbindService(serviceConnection)
         iGameSpaceService = null
         try {
             iStatusBarService.setBlockedGesturalNavigation(false)

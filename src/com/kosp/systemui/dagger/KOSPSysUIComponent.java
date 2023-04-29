@@ -22,8 +22,9 @@ import com.android.systemui.dagger.DependencyProvider;
 import com.android.systemui.dagger.SysUIComponent;
 import com.android.systemui.dagger.SysUISingleton;
 import com.android.systemui.dagger.SystemUIBinder;
+import com.android.systemui.statusbar.NotificationInsetsModule;
+import com.android.systemui.statusbar.QsFrameTranslateModule;
 import com.kosp.systemui.LiveDisplayInitReceiver;
-import com.google.android.systemui.smartspace.KeyguardSmartspaceController;
 
 import dagger.Subcomponent;
 
@@ -31,6 +32,8 @@ import dagger.Subcomponent;
 @Subcomponent(modules = {
         DefaultComponentBinder.class,
         DependencyProvider.class,
+        NotificationInsetsModule.class,
+        QsFrameTranslateModule.class,
         SystemUIBinder.class,
         KOSPServiceBinder.class,
         KOSPSystemUIModule.class,
@@ -44,12 +47,6 @@ public interface KOSPSysUIComponent extends SysUIComponent {
         @Override
         KOSPSysUIComponent build();
     }
-
-    /**
-     * Creates a KeyguardSmartspaceController.
-     */
-    @SysUISingleton
-    KeyguardSmartspaceController createKeyguardSmartspaceController();
 
     @SysUISingleton
     LiveDisplayInitReceiver getLiveDisplayInitReceiver();

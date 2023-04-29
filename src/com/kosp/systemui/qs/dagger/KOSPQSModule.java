@@ -34,7 +34,6 @@ import com.android.systemui.qs.QSTileHost;
 import com.android.systemui.qs.ReduceBrightColorsController;
 import com.android.systemui.qs.dagger.QSFlagsModule;
 import com.android.systemui.qs.dagger.QSFragmentComponent;
-import com.android.systemui.qs.dagger.QSModule;
 import com.android.systemui.qs.external.QSExternalModule;
 import com.android.systemui.statusbar.phone.AutoTileManager;
 import com.android.systemui.statusbar.phone.ManagedProfileController;
